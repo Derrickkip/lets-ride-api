@@ -2,25 +2,49 @@ import pickle, json
 from flask import jsonify, request
 from . import api
 
-from .models import Ride
+from .models import Ride, RideRequest
 
 rides = []
 
-@api.route("/rides", methods=["POST"])
+@api.route("/rides", methods=["POST", "GET"])
 def create_ride():
 
-    ride = request.get_json()
+    if request.method == "POST":
 
-    print(ride)
+        ride = request.json
 
-    new_ride = Ride(ride['driver'], ride['origin'], ride['destination'], ride['time'], ride['date'], ride['seats'])
+        new_id = len(rides) + 1
 
-    rides.append(new_ride)
+        new_ride = Ride(new_id, ride['driver'], ride['origin'], ride['destination'], ride['time'], ride['date'], ride['seats'])
 
-    response = { "data" : "success", "ride" : json.dumps(new_ride.__dict__) }
+        rides.append(new_ride.as_dict())
+
+        response = { "data" : "success", "ride" : new_ride.as_dict() }
+
+        return jsonify(response)
+
+    return jsonify(rides)
+
+@api.route("/rides/<int:id>")
+def get_ride(id):
+    for ride in rides:
+        if ride['id'] == id:
+            return jsonify(ride)
+
+    response = {"data" : "error"}
 
     return jsonify(response)
 
-@api.route("/rides")
-def get_rides():
-    return json.dumps(rides)
+@api.route("/rides/<int:id>/request/<name>")
+def request_ride(id, name):
+    for ride in rides:
+        if ride['id'] == id:
+            ride_to_request = ride
+
+    print(ride_to_request)
+
+    # if ride_to_request:
+    #     Request = RideRequest(name)
+    #     print()
+
+    
